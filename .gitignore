@@ -130,7 +130,7 @@ kubernetes.tar.gz
 coverage.txt
 
 # go vendor directory
-vendor
+# vendor
 
 # helm dependency files
 installer/helm/chart/volcano/requirements.lock
