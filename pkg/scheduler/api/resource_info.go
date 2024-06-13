@@ -21,7 +21,7 @@ import (
 	"math"
 	"strings"
 
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
@@ -251,6 +251,33 @@ func (r *Resource) Add(rr *Resource) *Resource {
 		}
 		r.ScalarResources[rName] += rQuant
 	}
+
+	return r
+}
+
+// AddForMinRequest is used to add two given resources, but when rr's Resource struct == 0, r's Resource will be 0.
+// For example, if the minimum request is only 1 CPU core, then there is no need to add memory, GPU and other resources.
+func (r *Resource) AddForMinRequest(rr *Resource) *Resource {
+	if rr.MilliCPU == 0 {
+		r.MilliCPU = 0
+	} else {
+		r.MilliCPU += rr.MilliCPU
+	}
+
+	if rr.Memory == 0 {
+		r.Memory = 0
+	} else {
+		r.Memory += rr.Memory
+	}
+
+	newScalarResources := map[v1.ResourceName]float64{}
+	for rName, rQuant := range rr.ScalarResources {
+		if r.ScalarResources == nil {
+			r.ScalarResources = map[v1.ResourceName]float64{}
+		}
+		newScalarResources[rName] = r.ScalarResources[rName] + rQuant
+	}
+	r.ScalarResources = newScalarResources
 
 	return r
 }
